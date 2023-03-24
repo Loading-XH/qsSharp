@@ -18,12 +18,7 @@ namespace QSTest
         public async Task TtoString()
         {
             //Arrange
-            var classtest = new
-            {
-                name="≤‚ ‘",
-                age=18,
-
-            };
+            var classtest = new Person();
 
             //Act 
             var info =qs.Stringify(classtest);
@@ -33,6 +28,12 @@ namespace QSTest
             //Assert
             //Debug.Assert(info);
             Assert.NotEmpty(info);
+        }
+        private class Person
+        {
+            public string name { get; set; } = "≤‚ ‘";
+            public int age { get; set; } = 18;
+            public string sex { get; set; } = "≈Æ";
         }
     }
 }

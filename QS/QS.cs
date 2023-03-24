@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 
 namespace QueryString
 {
@@ -7,15 +8,17 @@ namespace QueryString
     {
         public string Stringify<T>(T source)
         {
-            Type type = Assembly.GetExecutingAssembly().GetType(nameof(source));
-            FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Type type =source.GetType();
+            PropertyInfo[] props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            Console.WriteLine($"共有{fields.Length}个变量");
-            for (int i = 0; i < fields.Length; i++)
+            StringBuilder sb=new StringBuilder();
+            Console.WriteLine($"共有{props.Length}个变量");
+            for (int i = 0; i < props.Length; i++)
             {
-                Console.WriteLine($"{fields[i].FieldType.Name} {fields[i].Name}");
+                sb.Append($"{props[i].Name} = {props[i].GetValue(source)}&");
+                Console.WriteLine($"{props[i].PropertyType.Name} {props[i].Name}");
             }
-            return "";
+            return sb.ToString();
         }
 
         public T Parse<T>(string query) where T : new()

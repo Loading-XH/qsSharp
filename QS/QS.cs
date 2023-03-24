@@ -8,15 +8,16 @@ namespace QueryString
     {
         public string Stringify<T>(T source)
         {
-            Type type =source.GetType();
+            Type type = source.GetType();
             PropertyInfo[] props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            StringBuilder sb=new StringBuilder();
-            Console.WriteLine($"共有{props.Length}个变量");
+            StringBuilder sb = new StringBuilder();
+
             for (int i = 0; i < props.Length; i++)
             {
-                sb.Append($"{props[i].Name} = {props[i].GetValue(source)}&");
-                Console.WriteLine($"{props[i].PropertyType.Name} {props[i].Name}");
+                sb.Append($"{props[i].Name}={props[i].GetValue(source)}");
+                if (i != props.Length - 1)
+                    sb.Append("&");
             }
             return sb.ToString();
         }

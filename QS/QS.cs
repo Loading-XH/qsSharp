@@ -1,30 +1,85 @@
 ﻿using System;
-using System.Reflection;
-using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
-namespace QueryString
+namespace QueryString;
+public class QS
 {
-    public class QS
+    private static readonly Regex _regex = new Regex(@"(^[A-Z]*)", RegexOptions.Compiled);
+
+    public static string Stringify(object o)
     {
-        public string Stringify<T>(T source)
+        var enumerable = BuildQueryStringParams(o, null);
+
+        return string.Join('&', enumerable);
+    }
+
+    private static IEnumerable<string> BuildQueryStringParams(object? o, string? prefix)
+    {
+        if (o is null)
+            yield break;
+
+        switch (o)
         {
-            Type type = source.GetType();
-            PropertyInfo[] props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            case IFormattable:
+            case string:
+                yield return $"{prefix}={o}";
+                break;
 
-            StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < props.Length; i++)
-            {
-                sb.Append($"{props[i].Name}={props[i].GetValue(source)}");
-                if (i != props.Length - 1)
-                    sb.Append("&");
-            }
-            return sb.ToString();
-        }
+            case IDictionary d:
+                foreach (DictionaryEntry item in d)
+                {
+                    var key = item.Key?.ToString() ?? string.Empty;
+                    var value = item.Value;
+                    var p = prefix is null ? key : $"{prefix}[{key}]";
 
-        public T Parse<T>(string query) where T : new()
-        {
-            return new T();
+                    foreach (var i in BuildQueryStringParams(value, p))
+                    {
+                        yield return i;
+                    }
+                }
+                break;
+
+            case IEnumerable e:
+                var index = 0;
+                foreach (var item in e)
+                {
+                    var p = $"{prefix}[{index}]";
+                    foreach (var i in BuildQueryStringParams(item, p))
+                    {
+                        yield return i;
+                    }
+                    index++;
+                }
+                break;
+
+            default:
+                var dic = o.GetType()
+                .GetProperties()
+                .ToDictionary(prop => lowerCamelCase(prop.Name), prop => prop.GetValue(o, null));
+
+                foreach (var item in dic)
+                {
+                    var p = prefix is null ? item.Key : $"{prefix}[{item.Key}]";
+
+                    foreach (var i in BuildQueryStringParams(item.Value, p))
+                    {
+                        yield return i;
+                    }
+                }
+
+                break;
         }
     }
+
+
+    private static string lowerCamelCase(string input)
+    {
+        return _regex.Replace(input, m => m.Groups[1].Value.ToLower());
+    }
+
+
 }

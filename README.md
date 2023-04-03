@@ -1,6 +1,6 @@
 ## Implementation of converting an object to a QueryString in C#
 
-Reference to  `<a href="https://github.com/ljharb/qs">`qs.js `</a>`
+Reference to [qs.js](https://github.com/ljharb/qs)
 
 ### Example：
 
